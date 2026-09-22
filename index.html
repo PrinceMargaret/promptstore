@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptStore - Curated AI Fashion & Portrait Prompts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="min-h-screen bg-slate-950 font-sans text-slate-100 selection:bg-indigo-500/30 flex flex-col">
+
+    <nav class="sticky top-0 z-40 bg-slate-950/85 backdrop-blur-xl border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-2.5 cursor-pointer shrink-0" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <span class="text-white font-black text-xl">P</span>
+                </div>
+                <span class="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300">
+                    PromptStore<span class="text-indigo-500">.in</span>
+                </span>
+            </div>
+
+            <div class="hidden md:flex items-center gap-2 bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-full text-sm text-slate-400 w-72 lg:w-80 shadow-inner">
+                <i data-lucide="search" class="w-4 h-4 text-slate-500 shrink-0"></i>
+                <input 
+                    type="text" 
+                    id="desktop-search" 
+                    placeholder="Search prompts or trend #..." 
+                    oninput="handleSearch(this.value)"
+                    class="bg-transparent border-none outline-none text-white placeholder-slate-500 text-xs sm:text-sm w-full"
+                />
+            </div>
+
+            <div class="text-xs sm:text-sm font-medium text-slate-400 flex items-center gap-1.5 shrink-0">
+                <i data-lucide="sparkles" class="w-4 h-4 text-indigo-400 hidden sm:inline"></i>
+                <span>AI Fashion & Portraits</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="md:hidden px-4 pt-4 bg-slate-950">
+        <div class="flex items-center gap-2.5 bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-sm text-slate-400 shadow-inner w-full">
+            <i data-lucide="search" class="w-4 h-4 text-slate-500 shrink-0"></i>
+            <input 
+                type="text" 
+                id="mobile-search" 
+                placeholder="Search prompts or trend #..." 
+                oninput="handleSearch(this.value)"
+                class="bg-transparent border-none outline-none text-white placeholder-slate-500 text-sm w-full"
+            />
+        </div>
+    </div>
+
+    <div class="relative overflow-hidden pt-6 pb-12 sm:py-20 text-center px-4">
+        <div class="absolute inset-0 bg-gradient-to-b from-indigo-950/20 via-slate-950/60 to-slate-950 pointer-events-none"></div>
+        <div class="relative max-w-4xl mx-auto">
+            <div class="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1.5 rounded-full text-indigo-400 text-xs sm:text-sm font-semibold mb-4 shadow-sm">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Curated AI Prompt Gallery
+            </div>
+            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-4 sm:mb-6 leading-tight">
+                Generate <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500">Masterpieces</span>
+            </h1>
+            <p class="max-w-2xl mx-auto text-base sm:text-xl text-slate-400 mb-6 leading-relaxed">
+                Explore our complete gallery of high-quality AI prompts. Copy, tweak, and create stunning visual art in seconds.
+            </p>
+        </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pb-24 flex-grow w-full">
+        <div id="prompt-grid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+            <!-- Dynamic prompt cards injected via JavaScript -->
+        </div>
+        <div id="empty-state" class="hidden text-center py-20 bg-slate-900/50 rounded-3xl border border-slate-800 my-8 p-8">
+            <p class="text-lg font-medium text-slate-300 mb-2">No matching prompts found</p>
+            <p class="text-sm text-slate-500 mb-6">Try searching with a different keyword or trend number.</p>
+            <button onclick="clearSearch()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-lg transition-all">
+                Clear Search
+            </button>
+        </div>
+    </main>
+
+    <footer class="border-t border-slate-900 bg-slate-950 py-8 text-center px-4 mt-auto">
+        <p class="text-slate-500 text-xs sm:text-sm">
+            © <span id="current-year"></span> PromptStore.in — Elevate Your AI Art. All rights reserved.
+        </p>
+    </footer>
+
+    <div id="detail-modal" class="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 lg:p-12 hidden overflow-y-auto">
+        <div class="fixed inset-0 bg-slate-950/85 backdrop-blur-md transition-opacity" onclick="closeModal()"></div>
+        <div class="relative bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden w-full max-w-5xl max-h-[92vh] sm:max-h-[90vh] flex flex-col md:flex-row shadow-2xl border border-slate-700/60 z-10 my-auto">
+            
+            <button onclick="closeModal()" class="absolute top-3 right-3 z-30 md:hidden bg-slate-900/80 text-white p-2.5 rounded-full backdrop-blur-md border border-white/15 shadow-lg active:scale-95">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Modal Image Carousel Container -->
+            <div class="relative w-full md:w-1/2 bg-black flex items-center justify-center min-h-[45vh] md:min-h-[auto] shrink-0">
+                <img id="modal-image" src="" alt="Prompt Preview" class="w-full h-full max-h-[50vh] md:max-h-[85vh] object-contain p-2 sm:p-4 transition-all duration-300">
+                
+                <div id="carousel-controls" class="hidden">
+                    <button onclick="prevImage()" class="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-white p-2.5 sm:p-3 rounded-full backdrop-blur-sm border border-white/10 transition-colors shadow-lg active:scale-95">
+                        <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                    </button>
+                    <button onclick="nextImage()" class="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-white p-2.5 sm:p-3 rounded-full backdrop-blur-sm border border-white/10 transition-colors shadow-lg active:scale-95">
+                        <i data-lucide="chevron-right" class="w-6 h-6"></i>
+                    </button>
+                    <div id="carousel-indicators" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-lg"></div>
+                </div>
+            </div>
+
+            <!-- Modal Content & Prompt Details Container -->
+            <div class="w-full md:w-1/2 flex flex-col flex-grow overflow-y-auto bg-slate-900">
+                <div class="sticky top-0 bg-slate-900/95 backdrop-blur-md z-20 border-b border-slate-800 px-5 sm:px-6 py-4 flex justify-between items-center">
+                    <span id="modal-trend-badge" class="bg-indigo-500/20 text-indigo-400 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold border border-indigo-500/30 flex items-center gap-1.5 shadow-sm">
+                        <i data-lucide="trending-up" class="w-4 h-4"></i> Trend #000
+                    </span>
+                    <button onclick="closeModal()" class="hidden md:flex text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 p-2 rounded-full transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <div class="p-5 sm:p-6 flex-grow flex flex-col gap-5 sm:gap-6">
+                    <div id="modal-caption-container">
+                        <h3 class="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2 flex items-center gap-1.5">
+                            <i data-lucide="heart" class="w-3.5 h-3.5 text-pink-400"></i> Creator Caption
+                        </h3>
+                        <p id="modal-caption" class="text-lg sm:text-xl text-white font-medium leading-relaxed"></p>
+                    </div>
+                    
+                    <div class="flex-grow">
+                        <h3 class="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2.5">Full AI Prompt</h3>
+                        <div class="bg-slate-950 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-inner">
+                            <p id="modal-prompt-text" class="text-slate-300 leading-relaxed text-xs sm:text-sm whitespace-pre-wrap selection:bg-indigo-500/30 font-mono"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sticky bottom-0 bg-slate-900/95 backdrop-blur-md z-20 border-t border-slate-800 p-4 sm:p-6 flex justify-end">
+                    <button id="modal-copy-btn" onclick="copyModalPrompt()" class="w-full flex items-center justify-center gap-2 px-6 py-3.5 sm:py-3 rounded-xl font-bold transition-all bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 active:scale-[0.98]">
+                        <i data-lucide="copy" class="w-4 h-4"></i> Copy Full Prompt
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-emerald-500 text-white px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none">
+        <i data-lucide="check" class="w-4 h-4 text-white"></i>
+        <span id="toast-message" class="font-medium text-sm">Prompt copied to clipboard!</span>
+    </div>
+
+    <script>
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Complete prompt dataset from shared link
+        const promptData = [
+            {
+                "trend": "879",
+                "caption": "You were created to do magical things 🪄🖤✨",
+                "prompt": "Create an ultra-realistic full-body fashion photograph of an adult woman, closely matching the reference image. Appearance: Shoulder-length dark-brown hair with a natural center part and soft loose waves. Minimal natural makeup, softly defined eyes, subtle pink lips, and a calm neutral expression looking directly at the camera. Outfit: Sleek fitted black one-piece swimsuit. It has a wide diagonal cutout running right waist to left shoulder, plus a curved cutout at the left waist. High-cut legs and smooth matte-black fabric. Pose: 1. Standing upright and facing the camera. Her torso remains straight while her hips are slightly angled. Both arms hang naturally beside her body with relaxed hands. One leg is placed slightly forward and crosses subtly in front of the other, creating the same elegant walking-like stance as the reference. Bare feet. 2. Seated on the studio floor with one knee raised and the other leg extended diagonally, one hand resting beside her and the other lightly on her raised knee, leaning back slightly with a relaxed, confident smile. 3. Standing in a three-quarter profile with one hand resting on her hip and the other arm relaxed, weight shifted onto the back leg, chin slightly raised, giving a subtle playful side glance. 4. Sitting on a low invisible stool with legs crossed at the ankles, torso upright, hands resting naturally on her thighs, shoulders relaxed, with a soft thoughtful expression looking slightly past the camera. 5. Standing with her back lightly against the wall, one knee bent with the foot touching the wall behind her, arms loosely folded, head tilted slightly to one side, wearing a calm, subtly amused expression. Composition: Vertical full-body portrait with the woman centered. Keep generous pale-gray negative space around her, with her head near the upper quarter and both feet visible near the bottom. Camera is positioned straight-on at approximately waist/chest height. Setting: Minimalist light-gray/white studio with a seamless wall and floor. No furniture or distracting objects. Lighting: Bright soft daylight entering from the right, creating gentle shadows and long diagonal window-light shadows across the floor. Style: Ultra-photorealistic minimalist fashion photography, realistic skin and hair, accurate swimsuit construction and cutouts, natural anatomy, soft neutral tones, clean high-key aesthetic. 9:16ar",
+                "images": [
+                    "https://pbs.twimg.com/media/HS0ulXNbQAARaRj.jpg",
+                    "https://pbs.twimg.com/media/HS0ul-nbkAAX0ef.jpg"
+                ]
+            },
+            {
+                "trend": "878",
+                "caption": "In his oversized shirt 🤍🤍🤍",
+                "prompt": "Create an ultra-realistic cinematic lifestyle photograph of an adult woman(match face) standing barefoot beside a floor-to-ceiling glass window in a luxurious high-rise apartment, closely matching the reference image’s composition, pose, framing, lighting, and atmosphere. Appearance: Wet-looking shoulder-length dark-brown hair with loose strands framing her face, natural makeup, warm glowing skin, and a soft thoughtful expression looking toward the city outside. Outfit: Oversized semi-sheer white button-up shirt worn loosely over black shorts, with the sleeves casually rolled up. Minimal delicate necklace and rings. Pose: 1. Standing in the corner beside the window frame, body angled slightly toward the city. One hand lightly touches the dark window frame beside her head while the other gently holds the shirt closed at her waist. Legs crossed naturally at the ankles, barefoot, matching the relaxed pose in the reference. 2. Sitting sideways on the beige sofa, one leg tucked slightly under the other, one arm resting along the backrest, gently gazing toward the window with a soft contemplative expression. 3. Standing with her back lightly against the window frame, one knee bent with the foot resting against the wall, arms loosely folded, looking toward the camera with a subtle confident half-smile. 4. Sitting on the edge of the coffee table, legs crossed naturally at the ankles, elbows relaxed on her knees, hands loosely clasped, looking downward with a calm introspective expression. 5. Standing near the window with her body turned toward the city, both hands resting lightly on the window frame at waist level, head slightly tilted back, eyes closed with a peaceful serene expression. Setting: Modern luxury apartment at sunset, with a floor-to-ceiling window showing a dense city skyline and glowing lights outside. A cozy living room with a beige sofa, floor lamp, coffee table, flowers, and warm interior details is visible on the left. Lighting: Warm sunset light coming through the window, illuminating her face and shirt while the apartment remains softly dim and cozy. Pink-orange sky and blurred city lights outside. Composition: Vertical full-body frame, woman positioned slightly right of center beside the window frame, entire body and bare feet visible. Keep the city skyline occupying the right background and the living room visible on the left. Style: Ultra-photorealistic cinematic lifestyle photography, realistic skin, wet hair strands, natural fabric folds, warm sunset tones, subtle depth of field, intimate luxury-apartment atmosphere. 9:16ar",
+                "images": [
+                    "https://pbs.twimg.com/media/HSy3a45asAAtb5R.jpg",
+                    "https://pbs.twimg.com/media/HSy3bS_aUAE_7xx.jpg"
+                ]
+            },
+            {
+                "trend": "877",
+                "caption": "Simplicity is the keynote of all true elegance 🖤",
+                "prompt": "Create an ultra-realistic high-fashion editorial photograph of an adult woman(match face), silhouette, framing, lighting, and minimalist studio aesthetic. Appearance: Long dark hair styled loosely and swept across part of her face, with natural flyaway strands. Dramatic smoky eye makeup, defined brows, subtle nude lips, and an intense confident expression looking directly toward the camera. Outfit: Elegant fitted black floor-length gown with very thin spaghetti single strap crossing delicately near the collarbone, an extremely deep V neckline, fitted waist and hips, and a high thigh slit along one side. Pose: 1. Standing tall with both arms raised above her head, elbows bent, hands resting in her hair. Her torso faces the camera while her hips angle slightly to one side, creating the same elongated S-shaped silhouette. One leg is visible through the high slit and extends slightly forward. 2. Seated sideways on a minimalist stool, one leg extended slightly forward and the other bent, one arm resting along the back of the stool while the other rests lightly on her thigh; chin slightly lowered, giving a calm, mysterious gaze toward the camera. 3. Standing in a three-quarter profile with one shoulder closer to the camera, one hand resting on her hip and the other gently touching her hair; subtle closed-mouth smile with a confident, playful expression. 4. Seated elegantly on the studio floor with one knee raised and the other leg extended diagonally, torso upright and supported by one arm behind her; head tilted slightly to the side with a soft, thoughtful expression and eyes looking directly at the camera. 5. Standing tall with one foot slightly forward, both arms relaxed naturally at her sides, shoulders angled subtly away from the camera; chin lifted slightly with a composed, powerful expression and an intense direct gaze. Composition: Vertical full-body fashion portrait, subject centered against a plain dark-gray studio background. Camera positioned slightly below eye level, with the entire figure extending almost from the top to the bottom of the frame. Lighting: Dramatic single-source side lighting, creating strong highlights across the face, chest, arms, and exposed leg while leaving parts of the black gown and background in deep shadow. Style: luxury fashion photography, realistic skin texture, detailed hair strands, elegant shadows, sophisticated editorial atmosphere. 9:16ar",
+                "images": [
+                    "https://pbs.twimg.com/media/HSw3oKga0AAj4Ut.jpg",
+                    "https://pbs.twimg.com/media/HSw3olIacAAPppL.jpg"
+                ]
+            },
+            {
+                "trend": "876",
+                "caption": "Hope you know, all my love is only for you, only You...💕",
+                "prompt": "Create an ultra-realistic cinematic romantic photograph of a couple on a motorcycle at the beach during sunset with warm golden hour lighting and affectionate poses. 9:16ar",
+                "images": [
+                    "https://pbs.twimg.com/media/HSwADAvaUAAE82T.jpg",
+                    "https://pbs.twimg.com/media/HSwADfabIAIlbIX.jpg"
+                ]
+            },
+            {
+                "trend": "875",
+                "caption": "At my cozy place 🙈❤️",
+                "prompt": "Create an ultra-realistic cinematic lifestyle portrait of an adult woman relaxing in a cozy boucle armchair with soft interior warm ambient lighting. 9:16ar",
+                "images": [
+                    "https://pbs.twimg.com/media/HSvMCLFaQAA_EQn.jpg",
+                    "https://pbs.twimg.com/media/HSvMCjAbYAAqRih.jpg"
+                ]
+            },
+            {
+                "trend": "874",
+                "caption": "Fashion is the art we live in 💅🏻💄👄",
+                "prompt": "Create an ultra-realistic cinematic fashion editorial photograph of an adult woman wearing a sparkling black mini dress with matching gloves. Low-angle perspective. 9:16ar",
+                "images": [
+                    "https://pbs.twimg.com/media/HSt6Jvna0AAUIYd.jpg",
+                    "https://pbs.twimg.com/media/HSt6MFFaMAEViiP.jpg"
+                ]
+            },
+            {
+                "trend": "873",
+                "caption": "Being sexy is about comfortable in yourself 🖤",
+                "prompt": "Create an ultra-realistic black-and-white fashion editorial portrait of an adult woman in a black cutout bodysuit with sophisticated artistic lighting. 9:16ar",
+                "images": [
+                    "https://pbs.twimg.com/media/HSr1U-gaQAATf4W.jpg",
+                    "https://pbs.twimg.com/media/HSr1VbMakAEQO65.jpg",
+                    "https://pbs.twimg.com/media/HSr1V2wbUAALon6.jpg"
+                ]
+            },
+            {
+                "trend": "872",
+                "caption": "Have you ever tried a metallic one piece 🩵",
+                "prompt": "Create an ultra-realistic cinematic fashion editorial photograph of an adult woman in a futuristic pastel-blue metallic studio outfit. 9:16ar",
+                "images": [
+                    "https://pbs.twimg.com/media/HSquxN1awAAeYHr.jpg",
+                    "https://pbs.twimg.com/media/HSquxqDawAAwtfn.jpg"
+                ]
+            },
+            {
+                "trend": "871",
+                "caption": "Inside White Woven Sphere, completely vulnerable 💫",
+                "prompt": "Create an ultra-realistic conceptual fine-art portrait of a model curled inside a large spherical structure made entirely from delicate white threads and soft studio lighting. 9:16ar",
+                "images": [
+                    "https://pbs.twimg.com/media/HSpxvH2acAARf6i.jpg",
+                    "https://pbs.twimg.com/media/HSpxvrzbkAARyC6.jpg"
+                ]
+            },
+            {
+                "trend": "870",
+                "caption": "Tape outfits to try out ✨",
+                "prompt": "Create an ultra-realistic full-body fashion editorial photograph of a model wearing avant-garde yellow CAUTION tape architectural fashion outfits. 9:16ar",
+                "images": [
+                    "https://pbs.twimg.com/media/HSobymIaoAAKUZe.jpg",
+                    "https://pbs.twimg.com/media/HSobzC5aUAA-DEH.jpg"
+                ]
+            },
+            {
+                "trend": "869",
+                "caption": "Mini Dress & Strappy Heels 🖤",
+                "prompt": "Create an ultra-realistic cinematic fashion photograph of an adult woman sitting on a modern glass-top table in a black halter mini dress. 9:16ar",
+                "images": [
+                    "https://pbs.twimg.com/media/HSmG3n5bAAAIPaF.jpg",
+                    "https://pbs.twimg.com/media/HSmG4Jea4AA7WKV.jpg"
+                ]
+            },
+            {
+                "trend": "868",
+                "caption": "Summer beaches and swimsuits 💙👙",
+                "prompt": "Create an ultra-realistic cinematic fashion photograph of an adult woman posing against a weathered white wooden wall wearing a navy-blue one-piece swimsuit. 9:16ar",
+                "images": [
+                    "https://pbs.twimg.com/media/HSlNukbaQAAknB7.jpg",
+                    "https://pbs.twimg.com/media/HSlNvNEbgAA2HeT.jpg",
+                    "https://pbs.twimg.com/media/HSlNvpHa8AAox13.jpg"
+                ]
+            },
+            {
+                "trend": "867",
+                "caption": "Oh..I love cozy surroundings 🩵✨",
+                "prompt": "Create an ultra-realistic cozy lifestyle portrait of an adult woman lying diagonally across a bed in a pastel sweater with plush toys and fairy lights.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSkchNXa0AA04Ax.jpg",
+                    "https://pbs.twimg.com/media/HSkchtZaMAAC5yO.jpg"
+                ]
+            },
+            {
+                "trend": "866",
+                "caption": "Cherry Cherry lady 🍒👠",
+                "prompt": "Create an ultra-realistic cinematic fashion photograph of an adult woman sitting on the floor with a bright-red mini dress, white tulle skirt, and cherries.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSi-An6bAAAnNDW.jpg",
+                    "https://pbs.twimg.com/media/HSi-BB0a4AAbuZP.jpg"
+                ]
+            },
+            {
+                "trend": "865",
+                "caption": "Red is my favourite colour ❤️. What is yours? 🙈",
+                "prompt": "Create an ultra-realistic cinematic fashion portrait of an adult woman sitting on a weathered concrete ledge beside the sea wearing a bright-red cutout dress.",
+                "images": [
+                    "https://pbs.twimg.com/media/HShKbXQbwAAwxZt.jpg",
+                    "https://pbs.twimg.com/media/HShKb32bYAAuRSI.jpg",
+                    "https://pbs.twimg.com/media/HShKcXEboAApa_g.jpg",
+                    "https://pbs.twimg.com/media/HShKc3XaQAEAUgH.jpg"
+                ]
+            },
+            {
+                "trend": "864",
+                "caption": "It's Friday and I am ready for the party. You are also coming right? 🫦✨",
+                "prompt": "Create an ultra-realistic cinematic fashion portrait of an adult woman in an ivory satin camisole and black pleated skirt with a handbag.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSgLVfWbYAAiweg.jpg",
+                    "https://pbs.twimg.com/media/HSgLXfxa0AAs6Bi.jpg"
+                ]
+            },
+            {
+                "trend": "863",
+                "caption": "Convert your image into Momo Ayase from Dan Da Dan Cosplay ✨",
+                "prompt": "Create an ultra-realistic full-body fashion cosplay photograph of an adult woman dressed as Momo Ayase from Dandadan.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSfeZ3Sb0AA4M2u.jpg"
+                ]
+            },
+            {
+                "trend": "862",
+                "caption": "Finding my light who can feed me some apples 🍎",
+                "prompt": "Create an ultra-realistic cinematic fashion editorial portrait of an adult woman with a dark angel aesthetic and black feathered wings.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSeShOGbEAAgxq0.jpg",
+                    "https://pbs.twimg.com/media/HSeShpobUAAnWGQ.jpg"
+                ]
+            },
+            {
+                "trend": "861",
+                "caption": "The more hearts, the better ❤️",
+                "prompt": "Create an ultra-realistic full-body fashion character reference image of the same adult woman shown twice side-by-side in heart-patched overalls front and back view.",
+                "images": [
+                    "https://pbs.twimg.com/media/HScHzBAakAA5mYA.jpg"
+                ]
+            },
+            {
+                "trend": "860",
+                "caption": "I am ready and you? 💖💅🏻",
+                "prompt": "Create an ultra-realistic mirror selfie of an adult woman in a modern minimalist bedroom wearing a pink-and-gold strapless set.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSa67mraEAANlOX.jpg"
+                ]
+            },
+            {
+                "trend": "859",
+                "caption": "If you know how to pull the right strings, you know how to handle it 😏🎸🤘🏻🎶",
+                "prompt": "Create an ultra-realistic cinematic fashion editorial photograph of an adult woman posing with a glossy black electric bass guitar.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSZ8SCJagAApeb1.jpg",
+                    "https://pbs.twimg.com/media/HSZ8SZ4bUAAoeMq.jpg"
+                ]
+            },
+            {
+                "trend": "858",
+                "caption": "Do you like tattooed version of me? 🖤🙈",
+                "prompt": "Create an ultra-realistic cinematic fashion editorial photograph of an adult woman in a sophisticated dark-red fairytale-inspired studio setting with crimson satin dress and tattoos.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSY_OWlbgAAm_0_.jpg",
+                    "https://pbs.twimg.com/media/HSY_OyJaIAAcZGA.jpg"
+                ]
+            },
+            {
+                "trend": "857",
+                "caption": "Your beauty matters more than your prettiness 🤍",
+                "prompt": "Create an ultra-realistic cinematic fashion editorial photograph of an adult woman standing against a clean minimalist white studio wall in a white cropped top and chiffon skirt.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSW9VmaagAAMoD4.jpg",
+                    "https://pbs.twimg.com/media/HSW9WBPbgAA8bi6.jpg",
+                    "https://pbs.twimg.com/media/HSW9WgEakAA8Tyz.jpg",
+                    "https://pbs.twimg.com/media/HSW9W-vbMAA3ldq.jpg"
+                ]
+            },
+            {
+                "trend": "856",
+                "caption": "Denim Overall & Rustic Kitchen Vibe 💙",
+                "prompt": "Create an ultra-realistic cinematic fashion photograph of an adult woman standing indoors in a warm rustic wooden café or farmhouse kitchen wearing blue denim short overalls.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSV6_2sb0AAWGAe.jpg",
+                    "https://pbs.twimg.com/media/HSV7AZ3boAEXWqM.jpg"
+                ]
+            },
+            {
+                "trend": "855",
+                "caption": "Life is too short, Love and wear Pretty Clothes 💛💅🏻",
+                "prompt": "Create an ultra-realistic cinematic fashion editorial photograph of an adult woman standing confidently in a minimalist black studio wearing a beige satin crop and tailored trousers.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSU_LycaMAAvV2a.jpg",
+                    "https://pbs.twimg.com/media/HSU_MNzakAACDrm.jpg"
+                ]
+            },
+            {
+                "trend": "854",
+                "caption": "Tropical Vibes & Lollipops 🍭",
+                "prompt": "Create an ultra-realistic cinematic fashion editorial photograph of an adult woman seated gracefully in an oversized white wicker peacock chair against a vibrant turquoise-blue studio backdrop.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSUJKKObgAELbEh.jpg",
+                    "https://pbs.twimg.com/media/HSUJKqYaYAA1g0j.jpg"
+                ]
+            },
+            {
+                "trend": "853",
+                "caption": "What would you do first if I was a barbie doll 🩷👠🎀?",
+                "prompt": "Create an ultra-realistic cinematic fashion editorial photograph of an adult woman in a whimsical pink doll-inspired studio setting with a pastel-pink corset and tulle tutu.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSRgNGibUAAPvw6.jpg"
+                ]
+            },
+            {
+                "trend": "852",
+                "caption": "Would you take my heart ❤️?",
+                "prompt": "Create an ultra-realistic cinematic fashion editorial photograph of an adult woman holding an oversized bright-red heart-shaped prop.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSQqPf7a0AAqhhm.jpg"
+                ]
+            },
+            {
+                "trend": "851",
+                "caption": "Feeling dreary 👁️👁️",
+                "prompt": "Create an ultra-realistic cinematic black-and-white fine-art fashion portrait of an adult woman in a sheer black chiffon gown.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSP-rjnaYAA0yIf.jpg",
+                    "https://pbs.twimg.com/media/HSP-r6gaoAA8SM7.jpg",
+                    "https://pbs.twimg.com/media/HSP-sQuaoAA8jD0.jpg",
+                    "https://pbs.twimg.com/media/HSP-slaa0AAXdMg.jpg"
+                ]
+            },
+            {
+                "trend": "850",
+                "caption": "Choose one (Your choice won't be judged 😎)",
+                "prompt": "Create an ultra-realistic cinematic lifestyle portrait in a warm, elegant modern bathroom wrapped in a white towel.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSOxOeTaYAAHevN.jpg",
+                    "https://pbs.twimg.com/media/HSOxO2pbkAAV7v4.jpg"
+                ]
+            },
+            {
+                "trend": "849",
+                "caption": "Even if i spend the whole day with you, i miss you the second you leave...🥺",
+                "prompt": "Create an ultra-realistic cinematic romantic lifestyle photograph of an adult couple during a beach cliff kiss and mountain lake embrace.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSMFT1DbwAAOlEU.jpg",
+                    "https://pbs.twimg.com/media/HSMFUZha8AA0LN8.jpg",
+                    "https://pbs.twimg.com/media/HSMFU7tboAAARN2.jpg"
+                ]
+            },
+            {
+                "trend": "848",
+                "caption": "How do I look in draped red gown? ♥️",
+                "prompt": "Create an ultra-realistic cinematic fashion editorial portrait of an adult woman in a sculptural crimson-red draped ensemble.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSK2xm2bQAAN-jO.jpg",
+                    "https://pbs.twimg.com/media/HSK2x7fa0AAcTn4.jpg",
+                    "https://pbs.twimg.com/media/HSK2yQ6aIAAmEPt.jpg"
+                ]
+            },
+            {
+                "trend": "847",
+                "caption": "Modern pink studio portraits 🩷",
+                "prompt": "Create an ultra-realistic cinematic fashion portrait of an adult woman seated elegantly on a minimalist black folding chair in a pastel-pink studio.",
+                "images": [
+                    "https://pbs.twimg.com/media/HSJo432asAA-7jy.jpg",
+                    "https://pbs.twimg.com/media/HSJo5PTbIAEPYXM.jpg",
+                    "https://pbs.twimg.com/media/HSJo5pfa0AAf5nS.jpg"
+                ]
+            }
+        ];
+
+        let activeModalData = null;
+        let currentImageIndex = 0;
+        let searchQuery = '';
+
+        // Render prompt cards grid
+        function renderGrid() {
+            const gridEl = document.getElementById('prompt-grid');
+            const emptyEl = document.getElementById('empty-state');
+
+            const filtered = promptData.filter(item => {
+                const q = searchQuery.toLowerCase();
+                const matchCaption = item.caption && item.caption.toLowerCase().includes(q);
+                const matchPrompt = item.prompt.toLowerCase().includes(q);
+                const matchTrend = item.trend.includes(q);
+                return matchCaption || matchPrompt || matchTrend;
+            });
+
+            if (filtered.length === 0) {
+                gridEl.innerHTML = '';
+                emptyEl.classList.remove('hidden');
+                return;
+            }
+
+            emptyEl.classList.add('hidden');
+            gridEl.innerHTML = filtered.map((item, originalIndex) => {
+                const actualIndex = promptData.indexOf(item);
+                return `
+                    <div onclick="openModal(${actualIndex})" class="group relative flex flex-col bg-slate-900 rounded-2xl overflow-hidden cursor-pointer border border-slate-800 hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300 active:scale-[0.99] sm:active:scale-100">
+                        <div class="relative w-full aspect-[9/16] overflow-hidden bg-slate-950">
+                            <img src="${item.images[0]}" alt="Trend ${item.trend}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" onerror="this.src='https://placehold.co/400x600/1e293b/a5b4fc?text=Image+Unavailable'">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-80"></div>
+                            
+                            <div class="absolute top-3 left-3 right-3 flex justify-between items-start pointer-events-none">
+                                <div class="bg-black/70 backdrop-blur-md text-white text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 border border-white/10 shadow-lg">
+                                    <i data-lucide="trending-up" class="w-3.5 h-3.5 text-indigo-400"></i> #${item.trend}
+                                </div>
+                                ${item.images.length > 1 ? `
+                                    <div class="bg-black/70 backdrop-blur-md text-white text-xs font-medium px-2 py-1.5 rounded-lg flex items-center gap-1 border border-white/10 shadow-lg">
+                                        <i data-lucide="image" class="w-3.5 h-3.5"></i> +${item.images.length - 1}
+                                    </div>
+                                ` : ''}
+                            </div>
+
+                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/30 backdrop-blur-[2px] hidden sm:flex">
+                                <div class="bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-full px-4 py-2 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-xl">
+                                    <span class="font-semibold text-sm">View Details</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 sm:p-4 flex flex-col flex-grow bg-slate-900">
+                            ${item.caption ? `<p class="text-slate-200 text-xs sm:text-sm font-medium line-clamp-2 mb-3 h-9 sm:h-10 leading-snug">${item.caption}</p>` : ''}
+                            <div class="mt-auto pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                                <p class="text-[11px] sm:text-xs text-slate-400 truncate flex-1">${item.prompt.substring(0, 35)}...</p>
+                                <button onclick="event.stopPropagation(); copyCardPrompt('${item.prompt.replace(/'/g, "\\'")}')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 sm:py-1.5 rounded-xl sm:rounded-lg text-xs font-semibold flex items-center gap-1 shadow-md shadow-indigo-500/20 active:scale-95 transition-all">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                    <span class="hidden xs:inline">Copy</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        // Search Handlers
+        function handleSearch(val) {
+            searchQuery = val;
+            // Sync both search inputs
+            document.getElementById('desktop-search').value = val;
+            document.getElementById('mobile-search').value = val;
+            renderGrid();
+        }
+
+        function clearSearch() {
+            handleSearch('');
+        }
+
+        // Clipboard Helper
+        function copyToClipboard(text, successCallback) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(successCallback).catch(() => fallbackCopy(text, successCallback));
+            } else {
+                fallbackCopy(text, successCallback);
+            }
+        }
+
+        function fallbackCopy(text, successCallback) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                if (successCallback) successCallback();
+            } catch (err) {
+                console.error('Copy failed', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showToast(message = "Prompt copied to clipboard!") {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        function copyCardPrompt(prompt) {
+            copyToClipboard(prompt, () => showToast());
+        }
+
+        // Modal Controls
+        function openModal(index) {
+            activeModalData = promptData[index];
+            currentImageIndex = 0;
+            
+            document.getElementById('modal-trend-badge').innerHTML = `<i data-lucide="trending-up" class="w-4 h-4 text-indigo-400"></i> Trend #${activeModalData.trend}`;
+            
+            const captionContainer = document.getElementById('modal-caption-container');
+            if (activeModalData.caption) {
+                captionContainer.style.display = 'block';
+                document.getElementById('modal-caption').textContent = activeModalData.caption;
+            } else {
+                captionContainer.style.display = 'none';
+            }
+            
+            document.getElementById('modal-prompt-text').textContent = activeModalData.prompt;
+            
+            updateModalImage();
+            
+            const modal = document.getElementById('detail-modal');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
+            document.body.style.overflow = 'unset';
+            activeModalData = null;
+        }
+
+        function updateModalImage() {
+            if (!activeModalData) return;
+            const imgEl = document.getElementById('modal-image');
+            imgEl.src = activeModalData.images[currentImageIndex];
+            
+            const controls = document.getElementById('carousel-controls');
+            if (activeModalData.images.length > 1) {
+                controls.classList.remove('hidden');
+                const indicators = document.getElementById('carousel-indicators');
+                indicators.innerHTML = activeModalData.images.map((_, idx) => `
+                    <div class="w-2 h-2 rounded-full transition-all ${idx === currentImageIndex ? 'bg-indigo-400 w-4' : 'bg-white/40'}"></div>
+                `).join('');
+            } else {
+                controls.classList.add('hidden');
+            }
+        }
+
+        function nextImage() {
+            if (!activeModalData) return;
+            currentImageIndex = (currentImageIndex + 1) % activeModalData.images.length;
+            updateModalImage();
+        }
+
+        function prevImage() {
+            if (!activeModalData) return;
+            currentImageIndex = (currentImageIndex === 0 ? activeModalData.images.length - 1 : currentImageIndex - 1);
+            updateModalImage();
+        }
+
+        function copyModalPrompt() {
+            if (activeModalData) {
+                copyToClipboard(activeModalData.prompt, () => {
+                    showToast("Full prompt copied to clipboard!");
+                    const btn = document.getElementById('modal-copy-btn');
+                    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Prompt Copied!`;
+                    btn.classList.remove('bg-indigo-600', 'hover:bg-indigo-500');
+                    btn.classList.add('bg-emerald-500');
+                    setTimeout(() => {
+                        btn.innerHTML = `<i data-lucide="copy" class="w-4 h-4"></i> Copy Full Prompt`;
+                        btn.classList.remove('bg-emerald-500');
+                        btn.classList.add('bg-indigo-600', 'hover:bg-indigo-500');
+                        lucide.createIcons();
+                    }, 2000);
+                    lucide.createIcons();
+                });
+            }
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            renderGrid();
+        };
+    </script>
+</body>
+</html>
